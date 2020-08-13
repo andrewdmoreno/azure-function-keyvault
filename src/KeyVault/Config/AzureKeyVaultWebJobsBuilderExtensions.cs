@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using System;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -93,8 +92,10 @@ namespace Willezone.Azure.WebJobs.Extensions.AzureKeyVault
         private static IWebJobsBuilder AddAzureKeyVault(this IWebJobsBuilder builder, Func<ConfigurationBuilder, IKeyVaultClient> configure)
         {
             var configurationBuilder = new ConfigurationBuilder();
-            var descriptor = builder.Services.FirstOrDefault(d => d.ServiceType == typeof(IConfiguration));
-            if (descriptor?.ImplementationInstance is IConfigurationRoot configuration)
+
+            // This is apparently now required in order for the IConfiguration instance to be populated
+            var serviceProvider = builder.Services.BuildServiceProvider();
+            if (serviceProvider.GetService<IConfiguration>() is IConfigurationRoot configuration)
             {
                 configurationBuilder.AddConfiguration(configuration);
             }
